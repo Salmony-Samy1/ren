@@ -1,0 +1,43 @@
+databases:
+  - name: gathro-db
+    plan: free
+
+services:
+  - type: web
+    name: gathro-api
+    env: php
+    autoDeploy: true
+    healthCheckPath: /
+    buildCommand: |
+      composer install --no-dev --prefer-dist --optimize-autoloader
+      php artisan storage:link || true
+    startCommand: |
+      php artisan config:cache || true
+      php artisan route:cache || true
+      php artisan view:cache || true
+      php -d variables_order=EGPCS -S 0.0.0.0:$PORT -t public public/index.php
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        value: https://gathro-api.onrender.com
+      - key: APP_KEY
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: gathro-db
+          property: connectionString
+      - key: LOG_LEVEL
+        value: info
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: REDIS_CLIENT
+        value: phpredis
