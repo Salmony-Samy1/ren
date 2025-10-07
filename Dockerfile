@@ -15,12 +15,12 @@ RUN apt-get update \
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Install PHP dependencies
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --optimize-autoloader
-
-# Copy application source
+# Copy application source first so autoloaded files exist
 COPY . /app
+
+# Install PHP dependencies (disable scripts during build)
+ENV COMPOSER_ALLOW_SUPERUSER=1
+RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-scripts
 
 # Ensure writable directories
 RUN chmod -R 777 storage bootstrap/cache || true
