@@ -1,0 +1,38 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up()
+    {
+        Schema::create('catering_items', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('service_id')->constrained('services')->onDelete('cascade');
+            $table->string('meal_name');
+            $table->decimal('price', 10, 2);
+            $table->integer('servings_count');
+            $table->string('availability_schedule');
+            $table->boolean('delivery_included')->default(false);
+            $table->timestamp('offer_duration')->nullable();
+            $table->integer('available_stock');
+            $table->text('description')->nullable();
+            $table->json('packages')->nullable();
+            $table->softDeletes();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('catering_items');
+    }
+};
