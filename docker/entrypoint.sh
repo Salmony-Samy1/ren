@@ -1,12 +1,17 @@
 #!/usr/bin/env sh
 set -e
 
-# Ensure storage links (ignore if already exists)
-php artisan storage:link || true
+# Ensure required directories exist
+mkdir -p public storage/app/public bootstrap/cache || true
 
-# Cache configs/routes/views for performance (ignore errors during first boot)
+# Create storage symlink if missing (ignore errors in containerized envs)
+if [ ! -L public/storage ]; then
+  php artisan storage:link || true
+fi
+
+# Cache config and views; avoid route:cache due to duplicate route names
 php artisan config:cache || true
-php artisan route:cache || true
+php artisan route:clear || true
 php artisan view:cache || true
 
 # Start PHP built-in server for Render

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gathro - طرق الدفع</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .payment-method {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .payment-method:hover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        .payment-method.selected {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+        }
+        .payment-method h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .payment-method p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .result.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .result.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .saved-cards {
+            margin: 20px 0;
+        }
+        .saved-card {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+        .saved-card:hover {
+            background-color: #f8f9fa;
+        }
+        .saved-card.selected {
+            background-color: #e3f2fd;
+            border-color: #007bff;
+        }
+        .security-notice {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #e8f5e8;
+            border: 1px solid #4caf50;
+            border-radius: 5px;
+            color: #2e7d32;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>طرق الدفع - Gathro</h1>
+        
+        <!-- معلومات الدفع -->
+        <div class="form-group">
+            <label>المبلغ:</label>
+            <input type="number" id="amount" value="100" step="0.01" min="0.01">
+        </div>
+        
+        <div class="form-group">
+            <label>العملة:</label>
+            <select id="currency">
+                <option value="SAR">ريال سعودي (SAR)</option>
+                <option value="BHD">دينار بحريني (BHD)</option>
+            </select>
+        </div>
+
+        <!-- البطاقات المحفوظة -->
+        <div class="saved-cards" id="savedCards" style="display: none;">
+            <h3>البطاقات المحفوظة</h3>
+            <div id="savedCardsList"></div>
+        </div>
+
+        <!-- طرق الدفع -->
+        <div class="payment-method" data-method="card">
+            <h3>💳 بطاقة ائتمانية (Visa/MasterCard)</h3>
+            <p>ادفع باستخدام بطاقتك الائتمانية</p>
+            
+            <div id="cardForm" style="display: none;">
+                <div class="form-group">
+                    <label>رقم البطاقة:</label>
+                    <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                </div>
+                <div class="form-group">
+                    <label>تاريخ الانتهاء:</label>
+                    <input type="text" id="expiryDate" placeholder="MM/YY" maxlength="5">
+                </div>
+                <div class="form-group">
+                    <label>CVV:</label>
+                    <input type="text" id="cvv" placeholder="123" maxlength="4">
+                </div>
+                <div class="form-group">
+                    <label>اسم حامل البطاقة:</label>
+                    <input type="text" id="cardName" placeholder="اسم حامل البطاقة">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="saveCard"> حفظ البطاقة للاستخدام المستقبلي
+                    </label>
+                </div>
+                <div class="security-notice">
+                    <small>🔒 بيانات البطاقة محمية ولا تصل إلى الخادم - يتم تشفيرها مباشرة مع Tap</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="payment-method" data-method="apple-pay">
+            <h3>🍎 Apple Pay</h3>
+            <p>ادفع باستخدام Apple Pay</p>
+        </div>
+
+        <div class="payment-method" data-method="benefit">
+            <h3>🏦 Benefit</h3>
+            <p>ادفع باستخدام Benefit</p>
+            
+            <div id="benefitForm" style="display: none;">
+                <div class="form-group">
+                    <label>رقم الهاتف:</label>
+                    <input type="text" id="benefitPhone" placeholder="12345678">
+                </div>
+            </div>
+        </div>
+
+        <div class="payment-method" data-method="google-pay">
+            <h3>📱 Google Pay</h3>
+            <p>ادفع باستخدام Google Pay</p>
+        </div>
+
+        <!-- أزرار التحكم -->
+        <button class="btn" id="payBtn" onclick="processPayment()">دفع الآن</button>
+        <button class="btn" onclick="loadSavedCards()">عرض البطاقات المحفوظة</button>
+
+        <!-- نتيجة الدفع -->
+        <div class="result" id="result"></div>
+    </div>
+
+    <!-- تحميل المكتبات -->
+    <script src="https://cdn.gotap.company/v2/tap.js"></script>
+    <script src="https://pay.google.com/gp/p/js/pay.js"></script>
+    <script src="/js/gathro-tap-payment.js"></script>
+
+    <script>
+        let tapPayment;
+        let selectedMethod = null;
+        let selectedSavedCard = null;
+
+        // تهيئة النظام
+        document.addEventListener('DOMContentLoaded', function() {
+            // تهيئة Tap Payment
+            tapPayment = new GathroTapPayment({
+                publicKey: 'YOUR_TAP_PUBLIC_KEY', // استبدل بالمفتاح الحقيقي
+                authToken: 'YOUR_AUTH_TOKEN', // استبدل بالتوكن الحقيقي
+                baseUrl: window.location.origin,
+                environment: 'TEST' // أو 'LIVE' للإنتاج
+            });
+
+            // إضافة مستمعي الأحداث لطرق الدفع
+            document.querySelectorAll('.payment-method').forEach(method => {
+                method.addEventListener('click', function() {
+                    selectPaymentMethod(this.dataset.method);
+                });
+            });
+        });
+
+        function selectPaymentMethod(method) {
+            // إزالة التحديد من جميع الطرق
+            document.querySelectorAll('.payment-method').forEach(m => {
+                m.classList.remove('selected');
+                const form = m.querySelector('div[id$="Form"]');
+                if (form) form.style.display = 'none';
+            });
+
+            // تحديد الطريقة المختارة
+            const selectedElement = document.querySelector(`[data-method="${method}"]`);
+            selectedElement.classList.add('selected');
+            selectedMethod = method;
+
+            // إظهار النموذج المطلوب
+            const formId = method.replace('-', '') + 'Form';
+            const form = document.getElementById(formId);
+            if (form) form.style.display = 'block';
+        }
+
+        async function processPayment() {
+            if (!selectedMethod) {
+                showResult('يرجى اختيار طريقة دفع', 'error');
+                return;
+            }
+
+            const amount = document.getElementById('amount').value;
+            const currency = document.getElementById('currency').value;
+
+            if (!amount || amount <= 0) {
+                showResult('يرجى إدخال مبلغ صحيح', 'error');
+                return;
+            }
+
+            const paymentData = {
+                amount: parseFloat(amount),
+                currency: currency,
+                bookingId: null // يمكن تمرير معرف الحجز هنا
+            };
+
+            let result;
+
+            try {
+                switch (selectedMethod) {
+                    case 'card':
+                        result = await processCardPayment(paymentData);
+                        break;
+                    case 'apple-pay':
+                        result = await processApplePay(paymentData);
+                        break;
+                    case 'benefit':
+                        result = await processBenefit(paymentData);
+                        break;
+                    case 'google-pay':
+                        result = await processGooglePay(paymentData);
+                        break;
+                    default:
+                        result = { success: false, message: 'طريقة دفع غير مدعومة' };
+                }
+
+                if (result.success) {
+                    showResult('تم الدفع بنجاح!', 'success');
+                } else {
+                    showResult(result.message || 'فشل في الدفع', 'error');
+                }
+
+            } catch (error) {
+                showResult('حدث خطأ أثناء معالجة الدفع: ' + error.message, 'error');
+            }
+        }
+
+        async function processCardPayment(paymentData) {
+            const cardData = {
+                number: document.getElementById('cardNumber').value,
+                expiryMonth: document.getElementById('expiryDate').value.split('/')[0],
+                expiryYear: '20' + document.getElementById('expiryDate').value.split('/')[1],
+                cvc: document.getElementById('cvv').value,
+                name: document.getElementById('cardName').value,
+                address: {
+                    line1: '',
+                    city: '',
+                    country: 'SA',
+                    zip: ''
+                }
+            };
+
+            paymentData.card = cardData;
+            paymentData.saveCard = document.getElementById('saveCard').checked;
+
+            return await tapPayment.processCardPayment(paymentData);
+        }
+
+        async function processApplePay(paymentData) {
+            paymentData.countryCode = 'SA';
+            return await tapPayment.processApplePay(paymentData);
+        }
+
+        async function processBenefit(paymentData) {
+            paymentData.phoneNumber = document.getElementById('benefitPhone').value;
+            return await tapPayment.processBenefit(paymentData);
+        }
+
+        async function processGooglePay(paymentData) {
+            return await tapPayment.processGooglePay(paymentData);
+        }
+
+        async function loadSavedCards() {
+            try {
+                const result = await tapPayment.getSavedCards();
+                if (result.success && result.data.length > 0) {
+                    displaySavedCards(result.data);
+                } else {
+                    showResult('لا توجد بطاقات محفوظة', 'error');
+                }
+            } catch (error) {
+                showResult('فشل في تحميل البطاقات المحفوظة: ' + error.message, 'error');
+            }
+        }
+
+        function displaySavedCards(cards) {
+            const container = document.getElementById('savedCards');
+            const list = document.getElementById('savedCardsList');
+            
+            list.innerHTML = '';
+            
+            cards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'saved-card';
+                cardElement.innerHTML = `
+                    <strong>${card.brand}</strong> - ${card.masked_number}
+                    <br>
+                    <small>ينتهي في ${card.expiry_date}</small>
+                `;
+                
+                cardElement.addEventListener('click', function() {
+                    document.querySelectorAll('.saved-card').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedSavedCard = card.card_id;
+                });
+                
+                list.appendChild(cardElement);
+            });
+            
+            container.style.display = 'block';
+        }
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+            
+            // إخفاء النتيجة بعد 5 ثوان
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
