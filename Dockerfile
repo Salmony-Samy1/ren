@@ -1,23 +1,23 @@
-# Multi-stage Dockerfile for Laravel on Render (no external web server; PHP built-in server)
+# Dockerfile for Laravel on Render (PHP built-in server)
 
-# 1) Composer stage
-FROM composer:2 AS vendor
-WORKDIR /app
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-scripts
-
-# 2) Runtime stage
-FROM php:8.2-cli
+FROM php:8.2-cli AS app
 WORKDIR /app
 
-# Install system dependencies and PHP extensions
+# Install system dependencies and PHP extensions required by the app
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libpq-dev unzip \
-    && docker-php-ext-install pdo_pgsql \
+    && apt-get install -y --no-install-recommends \
+       git unzip libpq-dev libzip-dev \
+       libjpeg62-turbo-dev libpng-dev libwebp-dev libfreetype6-dev \
+    && docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
+    && docker-php-ext-install -j"$(nproc)" pdo_pgsql zip gd exif sockets \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy vendor from composer stage
-COPY --from=vendor /app/vendor /app/vendor
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Install PHP dependencies
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --prefer-dist --optimize-autoloader
 
 # Copy application source
 COPY . /app

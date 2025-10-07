@@ -4,14 +4,13 @@
 
 load database
   from mysql://root@127.0.0.1/d8966_gathro_dev
-  into postgresql://USER:PASSWORD@HOST:PORT/DBNAME?sslmode=require
+  into postgresql://d8966_gathro_dev_user:5gEJBRl8aGKoMxADfwZDmw6ACbKlm7kN@dpg-d3iml08dl3ps73dbgl1g-a.frankfurt-postgres.render.com/d8966_gathro_dev?sslmode=require
 
 with
-  create tables,
+  including drop, create tables,
   create indexes,
   reset sequences,
   foreign keys,
-  data only,    -- set to 'including drop, create tables' if target DB is empty and you want pgloader to create schema
   batch rows = 1000,
   multiple readers per thread,
   concurrency = 2
