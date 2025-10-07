@@ -3,11 +3,11 @@
 -- On Windows PowerShell, adjust volume path accordingly, e.g. ${PWD}
 
 load database
-  from mysql://loader:GathroLoader2025@127.0.0.1/d8966_gathro_dev
+  from mysql://loader:GathroLoader2025@localhost/d8966_gathro_dev
   into postgresql://d8966_gathro_dev_user:5gEJBRl8aGKoMxADfwZDmw6ACbKlm7kN@dpg-d3iml08dl3ps73dbgl1g-a.frankfurt-postgres.render.com/d8966_gathro_dev?sslmode=require
 
 with
-  including drop, create tables,
+  include drop, create tables,
   create indexes,
   reset sequences,
   foreign keys,

@@ -16,6 +16,16 @@ use Illuminate\Support\Facades\Auth;
 |
 */
 
+// Minimal root endpoint for uptime checks and to avoid 500s on /
+Route::get('/', function () {
+    return response()->json(['status' => 'ok']);
+});
+
+// Lightweight health endpoint (no session middleware)
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok']);
+});
+
 // Authentication Routes wrapped in the 'web' middleware group
 Route::middleware('web')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
